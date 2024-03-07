@@ -2,8 +2,10 @@
 
 [Topic](https://www.zabbix.com/forum/showthread.php?t=41439) on zabbix forum
 
+Forked from [here](https://github.com/Art3mK/Zabbix-LSI-RAID-Monitoring). Edited to use only trapper checks, thinking in critical enviroments (Zabbix sudo permission to execute MegaRAID can be a security gap, because it can perform any action on the server controller). 
+
 ## LSI_RAID_template
-Zabbix template "Template LSI RAID". Should be imported after Zabbix value mappings via "Configuration" -> "Templates" -> "Import".
+Zabbix template "Template LSI RAID". Should be imported after Zabbix value mappings via "Data Collection" -> "Templates" -> "Import".
 
 ### Available items:
 **Adapter**
@@ -42,10 +44,23 @@ This scrips reports all values for "critical" items at once. Currently it report
 
 Discovery and "trapper" scripts are executed by system scheduler.
 
-## Agent userparameters:
+## Install
+- Download the scripts
+`sudo curl -o /etc/zabbix/scripts/raid_trapper_check.pl https://raw.githubusercontent.com/matheus-nicolay/Zabbix-LSI-RAID-Monitoring/master/unix/raid_trapper_check.pl`
+`sudo curl -o /etc/zabbix/scripts/raid_discovery.pl https://raw.githubusercontent.com/matheus-nicolay/Zabbix-LSI-RAID-Monitoring/master/unix/raid_discovery.pl`
+
+- Scheduled Tasks in root crontab
+    ```bash
+    # crontab -e
+    * */3 * * * perl /etc/zabbix/scripts/raid_trapper_check.pl> /dev/null 2>&1
+    * */3 * * * perl /etc/zabbix/scripts/raid_discovery.pl> /dev/null 2>&1
+     ```
+
+## Use Agent userparameters:
 
 ### Unix/Linux
-   
+   `nano /etc/zabbix/zabbix_agent2.d/megacli.conf` or `nano /etc/zabbix/zabbix_agent.d/megacli.conf`
+ 
     UserParameter=hw.raid.physical_disk[*],/usr/bin/perl -w /etc/zabbix/scripts/raid_check.pl -mode pdisk -item $4 -adapter $1 -enclosure $2 -pdisk $3
     UserParameter=hw.raid.logical_disk[*],/usr/bin/perl -w /etc/zabbix/scripts/raid_check.pl -mode vdisk -item $3 -adapter $1 -vdisk $2
     UserParameter=hw.raid.bbu[*],/usr/bin/perl -w /etc/zabbix/scripts/raid_check.pl -mode bbu -item $2 -adapter $1
@@ -55,14 +70,13 @@ For agents on unix servers RAID tool should be executed via sudo, add this to su
 
     Defaults:zabbix !requiretty
     # path to your tool can be different
-    zabbix  ALL=NOPASSWD:/opt/MegaRAID/CmdTool2/CmdTool2
+    zabbix  ALL=NOPASSWD:/opt/MegaRAID/MegaCli/MegaCli64
 
-## Scheduled Tasks
+Finally, edit the template discovery rules to enable agent itens:
+- "Data Collection" -> "Templates" -> "Template LSI RAID (agent + trapper)" -> "Discovery rules"
+- Select "RAID discovery adapters" and click in "Enable"
+- In "RAID discovery bbu" -> "Item prototypes" select all and clique in "Create enabled"
+- In "RAID discovery pdisks" -> "Item prototypes" select all and clique in "Create enabled"
+- In "RAID discovery vdisks" -> "Item prototypes" select all and clique in "Create enabled"
 
-The scripts raid_trapper_checks and raid_discovery.pl must be run via cron/scheduled tasks. There is a trigger defined that alerts when the data is older than 10 minutes, so the script should be executed every 3 minutes or so.
-
-### Linux/Unix
-
-    # crontab -e
-    * */3 * * * perl /etc/zabbix/scripts/raid_trapper_check.pl> /dev/null 2>&1
-    * */3 * * * perl /etc/zabbix/scripts/raid_discovery.pl> /dev/null 2>&1
+ 
