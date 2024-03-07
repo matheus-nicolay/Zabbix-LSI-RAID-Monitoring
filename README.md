@@ -46,8 +46,10 @@ Discovery and "trapper" scripts are executed by system scheduler.
 
 ## Install
 - Download the scripts
-`sudo curl -o /etc/zabbix/scripts/raid_trapper_check.pl https://raw.githubusercontent.com/matheus-nicolay/Zabbix-LSI-RAID-Monitoring/master/unix/raid_trapper_check.pl`
-`sudo curl -o /etc/zabbix/scripts/raid_discovery.pl https://raw.githubusercontent.com/matheus-nicolay/Zabbix-LSI-RAID-Monitoring/master/unix/raid_discovery.pl`
+```bash
+ sudo curl -o /etc/zabbix/scripts/raid_trapper_check.pl https://raw.githubusercontent.com/matheus-nicolay/Zabbix-LSI-RAID-Monitoring/master/unix/raid_trapper_check.pl
+ sudo curl -o /etc/zabbix/scripts/raid_discovery.pl https://raw.githubusercontent.com/matheus-nicolay/Zabbix-LSI-RAID-Monitoring/master/unix/raid_discovery.pl
+```
 
 - Scheduled Tasks in root crontab
     ```bash
